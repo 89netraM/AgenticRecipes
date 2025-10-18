@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Sdk Name="Aspire.AppHost.Sdk" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>AgenticRecipes.AppHost</RootNamespace>
+    <AssemblyName>AgenticRecipes.AppHost</AssemblyName>
+    <UserSecretsId>9c8b1748-dbab-4a88-8064-c405406eab90</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ApiService\ApiService.csproj" />
+    <ProjectReference Include="..\Web\Web.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+  </ItemGroup>
+</Project>
