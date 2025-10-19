@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,12 @@ public static class Extensions
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
             // Turn on resilience by default
-            http.AddStandardResilienceHandler();
+            http.AddStandardResilienceHandler(c =>
+            {
+                c.AttemptTimeout.Timeout = TimeSpan.FromMinutes(5);
+                c.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(10);
+                c.TotalRequestTimeout.Timeout = TimeSpan.FromHours(1);
+            });
 
             // Turn on service discovery by default
             http.AddServiceDiscovery();

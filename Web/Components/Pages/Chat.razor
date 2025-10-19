@@ -1,0 +1,90 @@
+﻿@page "/chat"
+@using System.Threading
+@using Microsoft.Agents.AI
+@using Microsoft.Agents.AI.Workflows
+@using Microsoft.Extensions.AI
+@rendermode InteractiveServer
+@inject Workflow workflow
+
+<PageTitle>Chat</PageTitle>
+
+<h1>Chat</h1>
+
+<div class="chat">
+    @foreach (var message in Messages)
+    {
+        if (message.Role == ChatRole.User)
+        {
+            <p class="user">@message.Text</p>
+        }
+        else if (message.Role == ChatRole.Assistant)
+        {
+            <pre class="assistant">@message.Text</pre>
+        }
+        else
+        {
+            <div class="alert alert-primary d-flex align-items-center" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>@message.Text</div>
+            </div>
+        }
+    }
+</div>
+
+<div class="input-group mb-3">
+    <input type="text" class="form-control" @bind-value="@Draft" @onkeyup="@OnDraftKeyUp">
+    <button class="btn btn-outline-secondary" type="button" @onclick="@OnSend">Send</button>
+</div>
+
+@code {
+    public List<ChatMessage> Messages { get; set; } = [];
+    public string Draft { get; set; } = "";
+    private AIAgent agent = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        agent = await workflow.AsAgentAsync();
+    }
+
+    public async Task OnDraftKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Code is "Enter")
+        {
+            await SendChatMessage();
+        }
+    }
+
+    public async Task OnSend()
+    {
+        await SendChatMessage();
+    }
+
+    public async Task SendChatMessage()
+    {
+        if (Draft is "")
+        {
+            return;
+        }
+
+        var message = new ChatMessage(ChatRole.User, Draft);
+        Messages.Add(message);
+        Draft = "";
+
+        var workflowAgent = await workflow.AsAgentAsync();
+        var response = workflowAgent.RunStreamingAsync([..Messages]);
+        var responseIndex = Messages.Count;
+        Messages.Add(new(ChatRole.Assistant, ""));
+        try
+        {
+            await foreach (var update in response)
+            {
+                Messages[responseIndex] = new(ChatRole.Assistant, Messages[responseIndex].Text + update.Text);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Messages.Add(new(ChatRole.System, ex.Message));
+        }
+    }
+}

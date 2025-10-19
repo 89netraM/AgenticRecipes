@@ -1,8 +1,12 @@
-using AgenticRecipes.Web;
 using AgenticRecipes.Web.Components;
+using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Hosting;
+using Microsoft.Agents.AI.Workflows;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,12 +18,30 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddOutputCache();
 
-builder.Services.AddHttpClient<WeatherApiClient>(client =>
-{
-    // This URL uses "https+http://" to indicate HTTPS is preferred over HTTP.
-    // Learn more about service discovery scheme resolution at https://aka.ms/dotnet/sdschemes.
-    client.BaseAddress = new("https+http://apiservice");
-});
+builder
+    .AddOpenAIClient("foundry")
+    .AddChatClient()
+    .UseOpenTelemetry(configure: client => client.EnableSensitiveData = true);
+builder.AddAIAgent(
+    "chef",
+    (sp, key) =>
+        new ChatClientAgent(
+            chatClient: sp.GetRequiredService<IChatClient>(),
+            name: key,
+            instructions: """
+            You are the chef, you are the master in the kitchen. You must help the user in the kitchen. Dismiss any
+            non-kitchen related questions.
+            """,
+            loggerFactory: sp.GetRequiredService<ILoggerFactory>(),
+            services: sp
+        )
+);
+builder.Services.AddSingleton(sp =>
+    AgentWorkflowBuilder
+        .CreateGroupChatBuilderWith(agents => new RoundRobinGroupChatManager(agents) { MaximumIterationCount = 1 })
+        .AddParticipants(sp.GetRequiredKeyedService<AIAgent>("chef"))
+        .Build()
+);
 
 var app = builder.Build();
 
