@@ -3,6 +3,7 @@
 @using Microsoft.Agents.AI
 @using Microsoft.Agents.AI.Workflows
 @using Microsoft.Extensions.AI
+@using System.Diagnostics
 @rendermode InteractiveServer
 @inject Workflow workflow
 
@@ -39,12 +40,6 @@
 @code {
     public List<ChatMessage> Messages { get; set; } = [];
     public string Draft { get; set; } = "";
-    private AIAgent agent = null!;
-
-    protected override async Task OnInitializedAsync()
-    {
-        agent = await workflow.AsAgentAsync();
-    }
 
     public async Task OnDraftKeyUp(KeyboardEventArgs e)
     {
@@ -66,25 +61,25 @@
             return;
         }
 
-        var message = new ChatMessage(ChatRole.User, Draft);
-        Messages.Add(message);
+        using var activity = new Activity("chat");
+
+        Messages.Add(new(ChatRole.User, Draft));
         Draft = "";
 
-        var workflowAgent = await workflow.AsAgentAsync();
-        var response = workflowAgent.RunStreamingAsync([..Messages]);
+        await using var run = await InProcessExecution.StreamAsync(
+            workflow,
+            Messages.Select(c => new ChatMessage(c.Role, c.Text)).ToArray()
+        );
+        await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
         var responseIndex = Messages.Count;
         Messages.Add(new(ChatRole.Assistant, ""));
-        try
+        await foreach (var e in run.WatchStreamAsync())
         {
-            await foreach (var update in response)
+            if (e is AgentRunUpdateEvent { Update: { AuthorName: "chef", Text: var text } })
             {
-                Messages[responseIndex] = new(ChatRole.Assistant, Messages[responseIndex].Text + update.Text);
+                Messages[responseIndex] = new(ChatRole.Assistant, Messages[responseIndex].Text + text);
                 StateHasChanged();
             }
-        }
-        catch (Exception ex)
-        {
-            Messages.Add(new(ChatRole.System, ex.Message));
         }
     }
 }
