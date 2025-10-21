@@ -1,0 +1,7 @@
+@page "/workflow"
+@using MermaidJS.Blazor
+@using Microsoft.Agents.AI.Workflows
+@rendermode InteractiveServer
+@inject Workflow workflow
+
+<MermaidDiagram Definition="@workflow.ToMermaidString()" />

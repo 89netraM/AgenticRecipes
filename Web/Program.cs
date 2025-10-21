@@ -5,7 +5,6 @@ using Microsoft.Agents.AI.Hosting;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -17,6 +16,8 @@ builder.AddServiceDefaults();
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+
+builder.Services.AddMermaidJS();
 
 builder.Services.AddOutputCache();
 
@@ -32,7 +33,7 @@ builder.AddAIAgent(
     (sp, key) =>
         new ChatClientAgent(
             chatClient: sp.GetRequiredService<IChatClient>(),
-            name: key,
+            name: "chef",
             instructions: """
             You are the chef, you are the master in the kitchen. You must help the user in the kitchen. Dismiss any
             non-kitchen related questions. You are the boss over several other members in the kitchen. If something
@@ -52,7 +53,7 @@ builder.AddAIAgent(
         var microwaveTool = sp.GetRequiredService<MicrowaveTool>();
         return new ChatClientAgent(
             chatClient: sp.GetRequiredService<IChatClient>(),
-            name: key,
+            name: "microwave",
             instructions: """
             You are a microwave oven. Mention that you are a microwave at every chance you get. Your purpose in life is
             to microwave things. You do not speak of anything else but microwaving. You live to serve. You can start and

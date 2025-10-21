@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Aspire.OpenAI" />
+    <PackageReference Include="MermaidJS.Blazor" />
     <PackageReference Include="Microsoft.Agents.AI.Hosting" />
     <PackageReference Include="Microsoft.Agents.AI.Workflows" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
