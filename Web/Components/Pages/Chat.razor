@@ -4,7 +4,9 @@
 @using Microsoft.Agents.AI.Workflows
 @using Microsoft.Extensions.AI
 @using System.Diagnostics
+@using Microsoft.Extensions.Hosting
 @rendermode InteractiveServer
+@inject IHostEnvironment environment
 @inject Workflow workflow
 
 <PageTitle>Chat</PageTitle>
@@ -38,8 +40,16 @@
 </div>
 
 @code {
+    private ActivitySource activitySource = null!;
+
     public List<ChatMessage> Messages { get; set; } = [];
     public string Draft { get; set; } = "";
+    private AgentThread thread = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        activitySource = new(environment.ApplicationName);
+    }
 
     public async Task OnDraftKeyUp(KeyboardEventArgs e)
     {
@@ -61,7 +71,7 @@
             return;
         }
 
-        using var activity = new Activity("chat");
+        using var activity = activitySource.StartActivity("Chat");
 
         Messages.Add(new(ChatRole.User, Draft));
         Draft = "";
