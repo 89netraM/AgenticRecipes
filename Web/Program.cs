@@ -1,5 +1,6 @@
 using AgenticRecipes.Web;
 using AgenticRecipes.Web.Components;
+using AgenticRecipes.Web.Workflows;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Hosting;
 using Microsoft.Agents.AI.Workflows;
@@ -29,24 +30,9 @@ builder
     .AddChatClient()
     .UseOpenTelemetry(configure: client => client.EnableSensitiveData = true);
 
-builder.AddAIAgent(
-    "plain-agent",
-    (sp, key) =>
-        new ChatClientAgent(
-            chatClient: sp.GetRequiredService<IChatClient>(),
-            name: key,
-            loggerFactory: sp.GetRequiredService<ILoggerFactory>(),
-            services: sp
-        )
-);
-builder.Services.AddKeyedSingleton(
-    "plain-workflow",
-    (sp, key) =>
-    {
-        var plainAgent = sp.GetRequiredKeyedService<AIAgent>("plain-agent");
-        return new WorkflowBuilder(plainAgent).WithOutputFrom(plainAgent).Build();
-    }
-);
+builder.AddPlainWorkflow();
+
+builder.AddRagWorkflow();
 
 builder.AddAIAgent(
     "chef",

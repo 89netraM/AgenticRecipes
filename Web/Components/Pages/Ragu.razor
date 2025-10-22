@@ -1,11 +1,11 @@
-﻿@page "/chat"
+@page "/ragu"
 @using Microsoft.Agents.AI.Workflows
 @using Microsoft.Extensions.Hosting
 @rendermode InteractiveServer
 
-<PageTitle>Chat</PageTitle>
+<PageTitle>Ragù</PageTitle>
 
-<h1>Chat</h1>
+<h1>Ragù</h1>
 
 <ChatComponent ApplicationName="@environment.ApplicationName" Workflow="@workflow" />
 
@@ -13,6 +13,6 @@
     [Inject]
     public required IHostEnvironment environment { get; init; }
 
-    [Inject(Key = "plain")]
+    [Inject(Key = "rag")]
     public required Workflow workflow { get; init; }
 }
