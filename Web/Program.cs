@@ -8,6 +8,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OpenAI.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,25 @@ builder
     .AddOpenAIClient("openai")
     .AddChatClient()
     .UseOpenTelemetry(configure: client => client.EnableSensitiveData = true);
+
+builder.AddAIAgent(
+    "plain-agent",
+    (sp, key) =>
+        new ChatClientAgent(
+            chatClient: sp.GetRequiredService<IChatClient>(),
+            name: key,
+            loggerFactory: sp.GetRequiredService<ILoggerFactory>(),
+            services: sp
+        )
+);
+builder.Services.AddKeyedSingleton(
+    "plain-workflow",
+    (sp, key) =>
+    {
+        var plainAgent = sp.GetRequiredKeyedService<AIAgent>("plain-agent");
+        return new WorkflowBuilder(plainAgent).WithOutputFrom(plainAgent).Build();
+    }
+);
 
 builder.AddAIAgent(
     "chef",
@@ -73,20 +93,23 @@ builder.AddAIAgent(
         );
     }
 );
-builder.Services.AddSingleton(sp =>
-{
-    var chef = sp.GetRequiredKeyedService<AIAgent>("chef");
-    var microwave = sp.GetRequiredKeyedService<AIAgent>("microwave");
-    return AgentWorkflowBuilder
-        .CreateHandoffBuilderWith(chef)
-        .WithHandoff(chef, microwave, "If somethings needs to be done with the microwave, ask the microwave.")
-        .WithHandoff(
-            microwave,
-            chef,
-            "The chef is the boss in the kitchen. When you are done you should ALWAYS hand back control to the chef."
-        )
-        .Build();
-});
+builder.Services.AddKeyedSingleton(
+    "kitchen",
+    (sp, _) =>
+    {
+        var chef = sp.GetRequiredKeyedService<AIAgent>("chef");
+        var microwave = sp.GetRequiredKeyedService<AIAgent>("microwave");
+        return AgentWorkflowBuilder
+            .CreateHandoffBuilderWith(chef)
+            .WithHandoff(chef, microwave, "If somethings needs to be done with the microwave, ask the microwave.")
+            .WithHandoff(
+                microwave,
+                chef,
+                "The chef is the boss in the kitchen. When you are done you should ALWAYS hand back control to the chef."
+            )
+            .Build();
+    }
+);
 
 var app = builder.Build();
 

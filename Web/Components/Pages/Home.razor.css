@@ -1,4 +1,6 @@
-h1 {
+img {
     text-align: center;
-    margin-block-start: 3em;
+    width: 100%;
+    height: calc(100vh - 2.2rem);
+    object-fit: contain;
 }

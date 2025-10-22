@@ -82,7 +82,7 @@
         Messages.Add(new(ChatRole.Assistant, ""));
         await foreach (var e in run.WatchStreamAsync())
         {
-            if (e is AgentRunUpdateEvent { Update: { AuthorName: "chef", Text: var text } })
+            if (e is AgentRunUpdateEvent { Update: { Text: string text } })
             {
                 Messages[responseIndex] = new(ChatRole.Assistant, Messages[responseIndex].Text + text);
                 StateHasChanged();

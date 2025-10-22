@@ -6,11 +6,17 @@
 @using System.Diagnostics
 @using Microsoft.Extensions.Hosting
 @rendermode InteractiveServer
-@inject IHostEnvironment environment
-@inject Workflow workflow
 
 <PageTitle>Chat</PageTitle>
 
 <h1>Chat</h1>
 
 <ChatComponent ApplicationName="@environment.ApplicationName" Workflow="@workflow" />
+
+@code {
+    [Inject]
+    public required IHostEnvironment environment { get; init; }
+
+    [Inject(Key = "plain-workflow")]
+    public required Workflow workflow { get; init; }
+}
