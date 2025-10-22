@@ -13,5 +13,6 @@
     <PackageReference Include="Microsoft.Agents.AI.Hosting" />
     <PackageReference Include="Microsoft.Agents.AI.Workflows" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="SpotifyAPI.Web" />
   </ItemGroup>
 </Project>

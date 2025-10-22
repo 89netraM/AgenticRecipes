@@ -1,0 +1,18 @@
+@page "/tool"
+@using Microsoft.Agents.AI.Workflows
+@using Microsoft.Extensions.Hosting
+@rendermode InteractiveServer
+
+<PageTitle>Tool</PageTitle>
+
+<h1>Tool</h1>
+
+<ChatComponent ApplicationName="@environment.ApplicationName" Workflow="@workflow" />
+
+@code {
+    [Inject]
+    public required IHostEnvironment environment { get; init; }
+
+    [Inject(Key = "tool")]
+    public required Workflow workflow { get; init; }
+}
