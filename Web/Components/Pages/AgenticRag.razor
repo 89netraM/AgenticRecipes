@@ -1,0 +1,18 @@
+@page "/agentic-rag"
+@using Microsoft.Agents.AI.Workflows
+@using Microsoft.Extensions.Hosting
+@rendermode InteractiveServer
+
+<PageTitle>Agentic RAG</PageTitle>
+
+<h1>Agentic RAG</h1>
+
+<ChatComponent ApplicationName="@environment.ApplicationName" Workflow="@workflow" />
+
+@code {
+    [Inject]
+    public required IHostEnvironment environment { get; init; }
+
+    [Inject(Key = "agentic-rag")]
+    public required Workflow workflow { get; init; }
+}

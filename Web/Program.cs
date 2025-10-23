@@ -49,6 +49,8 @@ builder.AddRagWorkflow();
 
 builder.AddToolWorkflow();
 
+builder.AddAgenticRag();
+
 builder.AddKitchenWorkflow();
 
 var app = builder.Build();

@@ -74,15 +74,22 @@
         Draft = "";
 
         await using var run = await InProcessExecution.StreamAsync(
-            Workflow,
-            Messages.Select(c => new ChatMessage(c.Role, c.Text)).ToArray()
+        Workflow,
+        Messages.Select(c => new ChatMessage(c.Role, c.Text)).ToArray()
         );
         await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
         var responseIndex = Messages.Count;
         Messages.Add(new(ChatRole.Assistant, ""));
         await foreach (var e in run.WatchStreamAsync())
         {
-            if (e is AgentRunUpdateEvent { Update: { Text: string text } })
+            if (e is AgentRunUpdateEvent
+                {
+                    Update:
+                    {
+                        AuthorName: "plain" or "rag" or "tool" or "chef" or "recipe-writer",
+                        Text: string text
+                    }
+                })
             {
                 Messages[responseIndex] = new(ChatRole.Assistant, Messages[responseIndex].Text + text);
                 StateHasChanged();
